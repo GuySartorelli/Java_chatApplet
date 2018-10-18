@@ -143,6 +143,7 @@ public class ChatClient  implements Runnable { //extends Application
 //	}
 	
     private int port = 9090;
+    int status;
     String serverAddress = "10.140.136.80";
     private ClientConnectionThread reciever;
 	private Socket socket;
@@ -153,6 +154,7 @@ public class ChatClient  implements Runnable { //extends Application
     public ChatClient() throws IOException {
         socket = new Socket(serverAddress, port);
         System.out.println("Client running");
+        status = 1;
         
     
         try {
@@ -164,6 +166,7 @@ public class ChatClient  implements Runnable { //extends Application
 
         new Thread(this).start();
         reciever = new ClientConnectionThread(this, socket);
+        reciever.start();
     }
 
     @Override
@@ -189,11 +192,12 @@ public class ChatClient  implements Runnable { //extends Application
         }
     }
     
-    public void process(Message message) {
-        System.out.println(message);
+    public synchronized void process(Message message) {
+        if (message != null) System.out.println(message);
     }
     
     public void close() throws IOException {
+        status = 0;
         out.close();
         reciever.close();
         socket.close();

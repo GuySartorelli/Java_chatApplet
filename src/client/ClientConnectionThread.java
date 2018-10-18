@@ -24,9 +24,10 @@ public class ClientConnectionThread extends Thread {
     
     @Override
     public void run() {
-        while (true) {
+        while (client.status == 1) {
             try {
-                client.process((Message) in.readObject());
+                Message message = (Message) in.readObject();
+                client.process(message);
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {

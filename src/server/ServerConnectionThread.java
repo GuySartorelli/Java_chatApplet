@@ -22,7 +22,7 @@ public class ServerConnectionThread extends Thread {
         this.id = socket.getPort();
         
         try {
-            this.out = new ObjectOutputStream(socket.getOutputStream());
+//            this.out = new ObjectOutputStream(socket.getOutputStream());
             this.in = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
             socket.close();
@@ -41,17 +41,17 @@ public class ServerConnectionThread extends Thread {
     //                    out.writeObject(m);
     //                }
     //                server.clients.get(this).clear();
-                    try {
-                        Message message = (Message) in.readObject();
-                        server.process(id, message);
-                        done = message.getMessage().equals("!exit");
-                    } catch (EOFException e) {
-                        done = true;
-                    } catch(IOException | ClassNotFoundException e) {
-                        done = true;
-                        e.printStackTrace();
-                    }
+                try {
+                    Message message = (Message) in.readObject();
+                    server.process(id, message);
+                    done = message.getMessage().equals("!exit");
+                } catch (EOFException e) {
+                    done = true;
+                } catch(IOException | ClassNotFoundException e) {
+                    done = true;
+                    e.printStackTrace();
                 }
+            }
             close();
         } catch (IOException e) {
             e.printStackTrace();

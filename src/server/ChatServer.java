@@ -1,12 +1,9 @@
 package server;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +15,7 @@ public class ChatServer implements Runnable {
     
     private int port;
     ServerSocket listener;
-    Map<Integer, ServerConnectionThread> clients;
+    Map<Integer, ObjectOutputStream> clients;
     List<Message> messages;
     private int status;
     
@@ -30,14 +27,14 @@ public class ChatServer implements Runnable {
     
     public ChatServer() {
         this.port = 9090;
-        clients = new HashMap<Integer, ServerConnectionThread>();
+        clients = new HashMap<Integer, ObjectOutputStream>();
         messages = new CopyOnWriteArrayList<Message>();
     }
     
     public ChatServer(int port) {
         if (port == 20 || port == 80 || port == 8080) throw new IllegalArgumentException("Reserved port " + port);
         this.port = port;
-        clients = new HashMap<Integer, ServerConnectionThread>();
+        clients = new HashMap<Integer, ObjectOutputStream>();
         messages = new CopyOnWriteArrayList<Message>();
     }
 
@@ -60,7 +57,7 @@ public class ChatServer implements Runnable {
                 Socket socket = listener.accept();
                 ServerConnectionThread thread = new ServerConnectionThread(socket, this);
                 thread.start();
-                clients.put(socket.getPort(), thread);
+                clients.put(socket.getPort(), new ObjectOutputStream(socket.getOutputStream()));
                 
             } catch (IOException e) {
                 close();
@@ -69,7 +66,8 @@ public class ChatServer implements Runnable {
         }
     }
     
-    public void process(int client, Message message) {
+    public synchronized void process(int client, Message message) {
+        if (message == null) return;
         if (message.getMessage().equals("!exit")) {
             clients.remove(client);
             try {
@@ -86,16 +84,17 @@ public class ChatServer implements Runnable {
         }
     }
     
-    public void sendAll(Message message) throws IOException {
-        for (ServerConnectionThread client : clients.values()) {
-            client.send(message);
+    public synchronized void sendAll(Message message) throws IOException {
+        for (ObjectOutputStream clientOut : clients.values()) {
+            clientOut.writeObject(message);
         }
     }
     
-    public void sendAll(int sender, Message message) throws IOException {
-        for (Map.Entry<Integer, ServerConnectionThread> entry : clients.entrySet()) {
+    public synchronized void sendAll(int sender, Message message) throws IOException {
+        for (Map.Entry<Integer, ObjectOutputStream> entry : clients.entrySet()) {
             if (entry.getKey() == sender) continue;
-            entry.getValue().send(message);
+            System.out.println(entry.getKey() +", "+ entry.getValue() +""+ message);
+            entry.getValue().writeObject(message);
         }
     }
     
