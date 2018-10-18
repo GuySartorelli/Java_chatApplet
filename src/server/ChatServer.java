@@ -93,7 +93,6 @@ public class ChatServer implements Runnable {
     public synchronized void sendAll(int sender, Message message) throws IOException {
         for (Map.Entry<Integer, ObjectOutputStream> entry : clients.entrySet()) {
             if (entry.getKey() == sender) continue;
-            System.out.println(entry.getKey() +", "+ entry.getValue() +""+ message);
             entry.getValue().writeObject(message);
         }
     }
