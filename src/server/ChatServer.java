@@ -16,10 +16,9 @@ import messages.Message;
 
 public class ChatServer implements Runnable {
     
-    private Thread thread;
     private int port;
     ServerSocket listener;
-    List<ChatConnectionThread> clients;
+    Map<Integer, ServerConnectionThread> clients;
     List<Message> messages;
     private int status;
     
@@ -31,14 +30,14 @@ public class ChatServer implements Runnable {
     
     public ChatServer() {
         this.port = 9090;
-        clients = new ArrayList<ChatConnectionThread>();
+        clients = new HashMap<Integer, ServerConnectionThread>();
         messages = new CopyOnWriteArrayList<Message>();
     }
     
     public ChatServer(int port) {
         if (port == 20 || port == 80 || port == 8080) throw new IllegalArgumentException("Reserved port " + port);
         this.port = port;
-        clients = new ArrayList<ChatConnectionThread>();
+        clients = new HashMap<Integer, ServerConnectionThread>();
         messages = new CopyOnWriteArrayList<Message>();
     }
 
@@ -46,8 +45,7 @@ public class ChatServer implements Runnable {
         try {
             status = 1;
             listener = new ServerSocket(port);
-            thread = new Thread(this);
-            thread.start();
+            new Thread(this).start();
             System.out.println("Server listening on port " + port);
         } catch (IOException e) {
             status = -1;
@@ -60,14 +58,44 @@ public class ChatServer implements Runnable {
         while (status == 1) {
             try {
                 Socket socket = listener.accept();
-                ChatConnectionThread t = new ChatConnectionThread(socket, this);
-                t.start();
-                clients.add(t);
+                ServerConnectionThread thread = new ServerConnectionThread(socket, this);
+                thread.start();
+                clients.put(socket.getPort(), thread);
                 
             } catch (IOException e) {
                 close();
                 e.printStackTrace();
             }
+        }
+    }
+    
+    public void process(int client, Message message) {
+        if (message.getMessage().equals("!exit")) {
+            clients.remove(client);
+            try {
+                sendAll(new Message("server", message.getSender() + " has left"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                sendAll(client, message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public void sendAll(Message message) throws IOException {
+        for (ServerConnectionThread client : clients.values()) {
+            client.send(message);
+        }
+    }
+    
+    public void sendAll(int sender, Message message) throws IOException {
+        for (Map.Entry<Integer, ServerConnectionThread> entry : clients.entrySet()) {
+            if (entry.getKey() == sender) continue;
+            entry.getValue().send(message);
         }
     }
     

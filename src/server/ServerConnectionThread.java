@@ -8,16 +8,18 @@ import java.net.Socket;
 
 import messages.Message;
 
-public class ChatConnectionThread extends Thread {
+public class ServerConnectionThread extends Thread {
 
     private Socket socket;
     private ChatServer server;
     private ObjectOutputStream out;
     private ObjectInputStream in;
+    private int id;
     
-    public ChatConnectionThread(Socket socket, ChatServer server) throws IOException {
+    public ServerConnectionThread(Socket socket, ChatServer server) throws IOException {
         this.socket = socket;
         this.server = server;
+        this.id = socket.getPort();
         
         try {
             this.out = new ObjectOutputStream(socket.getOutputStream());
@@ -33,28 +35,22 @@ public class ChatConnectionThread extends Thread {
     {
         try {
             boolean done = false;
-            while (server.getStatus() == 1) {
+            while (server.getStatus() == 1 && !done) {
     //            if (!server.messages.isEmpty()) {
     //                for (Message m : server.messages {
     //                    out.writeObject(m);
     //                }
     //                server.clients.get(this).clear();
-                
-                    while (!done) {  
-                        try {
-                            Message message = (Message) in.readObject();
-                            System.out.println(message);
-                            done = message.getMessage().equals("!exit");
-                        } catch (EOFException e) {
-                            done = true;
-                        } catch(IOException | ClassNotFoundException e) {
-                            done = true;
-                            e.printStackTrace();
-                        }
+                    try {
+                        Message message = (Message) in.readObject();
+                        server.process(id, message);
+                        done = message.getMessage().equals("!exit");
+                    } catch (EOFException e) {
+                        done = true;
+                    } catch(IOException | ClassNotFoundException e) {
+                        done = true;
+                        e.printStackTrace();
                     }
-                    System.out.println("Client exited: " + socket);
-                    in.close();
-                    socket.close();
                 }
             close();
         } catch (IOException e) {
@@ -62,7 +58,21 @@ public class ChatConnectionThread extends Thread {
         }
     }
     
+    public void send(Message msg) throws IOException {
+        try {
+            out.writeObject(msg);
+            out.flush();
+        } catch(IOException e) {
+            System.out.println(id + " ERROR sending: ");
+            e.printStackTrace();
+            server.process(id, new Message("xxx", "!exit"));
+            close();
+        }
+    }
+    
     public void close() throws IOException {
+        System.out.println("Client exited: " + socket);
+        in.close();
         socket.close();
     }
 }
