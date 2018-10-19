@@ -62,6 +62,7 @@ public class ServerConnectionThread extends Thread {
                         response = ChatDB.signup(name, pwd);
                         if (response == 1) {
                             this.name = name;
+                            System.out.println("Client authorised: " + socket + "as " + name);
                         } else {
                             done = true;
                         }
@@ -71,6 +72,7 @@ public class ServerConnectionThread extends Thread {
                         response = ChatDB.login(name, pwd);
                         if (response == 1) {
                             this.name = name;
+                            System.out.println("Client authorised: " + socket + "as " + name);
                         } else {
                             done = true;
                         }
