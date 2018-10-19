@@ -19,6 +19,10 @@ public class Message implements Serializable {
         return sender;
     }
 
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
     public String getMessage() {
         return message;
     }

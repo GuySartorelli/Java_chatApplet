@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +19,6 @@ public class ChatServer implements Runnable {
     Map<Integer, ObjectOutputStream> clients;
     List<Message> messages;
     private int status;
-    
-    //get a basic thing working
-//    private Socket socket;
-//    private ObjectOutputStream out;
-//    private ObjectInputStream in;
     
     
     public ChatServer() {
@@ -84,16 +80,34 @@ public class ChatServer implements Runnable {
         }
     }
     
+    public synchronized void respond(int client, int response) {
+        try {
+            clients.get(client).writeInt(response);
+            clients.get(client).flush();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
     public synchronized void sendAll(Message message) throws IOException {
-        for (ObjectOutputStream clientOut : clients.values()) {
-            clientOut.writeObject(message);
+        for (Map.Entry<Integer, ObjectOutputStream> entry : clients.entrySet()) {
+            try {
+                entry.getValue().writeObject(message);
+            } catch (SocketException e) {
+                clients.remove(entry.getKey());
+            }
         }
     }
     
     public synchronized void sendAll(int sender, Message message) throws IOException {
         for (Map.Entry<Integer, ObjectOutputStream> entry : clients.entrySet()) {
             if (entry.getKey() == sender) continue;
-            entry.getValue().writeObject(message);
+            try {
+                entry.getValue().writeObject(message);
+            } catch (SocketException e) {
+                clients.remove(entry.getKey());
+            }
         }
     }
     

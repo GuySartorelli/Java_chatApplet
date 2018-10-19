@@ -1,7 +1,10 @@
 package client;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
+import java.net.Socket;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -24,10 +27,12 @@ import javafx.stage.Stage;
  * Main application/GUI for number guessing game
  * @author rallion
  */
-public class ChatClientGUI extends Application {
+public class ChatGUI extends Application {
     
   private int width = 600;
   private int height = 150;
+  private Stage primaryStage;
+  private VBox layout;
   private ChatClient client;
 
   /* (non-Javadoc)
@@ -35,14 +40,14 @@ public class ChatClientGUI extends Application {
    */
   @Override
   public void start(Stage primaryStage) throws Exception {
+      this.primaryStage = primaryStage;
       primaryStage.setTitle("Chat Client");
       primaryStage.setMinHeight(height);
       primaryStage.setMinWidth(width);
-//      primaryStage.setMaxWidth(width);
       
       //Input pane with user interaction
       //--------------------------------
-      VBox layout = new VBox();
+      layout = new VBox();
       layout.setPadding(new Insets(0, 10, 0, 10));
       layout.setAlignment(Pos.CENTER_LEFT);
       HBox msgBox = new HBox();
@@ -72,12 +77,21 @@ public class ChatClientGUI extends Application {
       //----------------------------------------
       msgBox.getChildren().addAll(msgField, sendBtn, quitBtn);
       HBox.setHgrow(msgField, Priority.ALWAYS);
-      layout.getChildren().addAll(outputArea, msgBox); //newGameBtn
+      layout.getChildren().addAll(outputArea, msgBox);
       VBox.setVgrow(outputArea, Priority.ALWAYS);
-      primaryStage.setScene(new Scene(layout));
+      primaryStage.setScene(new Scene(new UserGUI(this)));
       primaryStage.show();
+  }
+  
+  public void startChat(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
+      primaryStage.setScene(new Scene(layout));
       
-      client = new ChatClient();
+      try {
+        client = new ChatClient(socket, in, out);
+    } catch (IOException e) {
+        client = null;
+        System.out.println("Unable to connect to server");
+    }
   }
   
   /**
@@ -131,7 +145,5 @@ public class ChatClientGUI extends Application {
   
   public static void main(String[] args) throws IOException {
       launch(args);
-//      System.exit(0);
-//      new ChatClient();
   }
 }

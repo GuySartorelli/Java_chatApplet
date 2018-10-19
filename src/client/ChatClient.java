@@ -1,9 +1,11 @@
 package client;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 
 import messages.Message;
 
@@ -11,41 +13,45 @@ import messages.Message;
  * Main application/GUI for number guessing game
  * @author rallion
  */
-public class ChatClient {
+public class ChatClient implements Runnable {
 	
-    private int port = 9090;
     int status;
-    String serverAddress = "10.140.136.80";
-    private ClientConnectionThread reciever;
+//    private ClientConnectionThread reciever;
 	private Socket socket;
     private ObjectOutputStream out;
-    private String userName = "Guy";
+    private ObjectInputStream in;
     
-    public ChatClient() throws IOException {
-        try {
-            socket = new Socket(serverAddress, port);
+    public ChatClient(Socket socket, ObjectInputStream in, ObjectOutputStream out) throws IOException {
+//        try {
+            this.socket = socket;
+            this.out = out;
+            this.in = in;
             System.out.println("Client running");
             status = 1;
-            
+            new Thread(this).start();
+    }
+    
+    @Override
+    public void run() {
+        while (status == 1) {
             try {
-                out = new ObjectOutputStream(socket.getOutputStream());
+                Message message = (Message) in.readObject();
+                process(message);
+            } catch (SocketException e) {
+                //Thrown when the client ends because it's stuck on in.readObject() when the socket closes
+                break;
             } catch (IOException e) {
-                socket.close();
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
-
-            reciever = new ClientConnectionThread(this, socket);
-            reciever.start();
-            
-        } catch (ConnectException e) {
-            System.out.println("Unable to connect");
-            status = -1;
         }
     }
     
     public void send(String msg) {
         if (status == 1) {
             try {
-                out.writeObject(new Message(userName, msg));
+                out.writeObject(new Message(null, msg));
                 out.flush();
                 System.out.println("Me: " + msg);
             } catch (IOException e) {
@@ -60,10 +66,10 @@ public class ChatClient {
     
     public void close() throws IOException {
         if (status == 1) {
-            send("!exit");
             status = 0;
+            send("!exit");
             out.close();
-            reciever.close();
+//            reciever.close();
             socket.close();
             System.out.println("Client closed");
         }
