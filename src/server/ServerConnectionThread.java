@@ -28,7 +28,7 @@ public class ServerConnectionThread extends Thread {
         }
         System.out.println("Client accepted: " + socket);
         
-        server.process(id, new Message("server", id + " has entered"));
+        server.process(id, new Message("server", name + " has entered"));
     }
     
     @Override

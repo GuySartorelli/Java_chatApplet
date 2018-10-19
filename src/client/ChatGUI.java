@@ -135,9 +135,9 @@ public class ChatGUI extends Application {
           public void handle(ActionEvent event) {
               try {
                 client.close();
-            } catch (IOException e) {
+              } catch (IOException e) {
                 e.printStackTrace();
-            }
+              }
               Platform.exit();
           }
       };
