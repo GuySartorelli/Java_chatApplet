@@ -1,5 +1,6 @@
 package client;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -16,13 +17,11 @@ import messages.Message;
 public class ChatClient implements Runnable {
 	
     int status;
-//    private ClientConnectionThread reciever;
 	private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
     
     public ChatClient(Socket socket, ObjectInputStream in, ObjectOutputStream out) throws IOException {
-//        try {
             this.socket = socket;
             this.out = out;
             this.in = in;
@@ -37,6 +36,11 @@ public class ChatClient implements Runnable {
             try {
                 Message message = (Message) in.readObject();
                 process(message);
+            } catch (EOFException e) {
+                //Thrown when the server closes connection because it's stuck on in.readObject() when the connection terminates
+                System.out.println("Connection severed by server");
+                status = 0;
+                break;
             } catch (SocketException e) {
                 //Thrown when the client ends because it's stuck on in.readObject() when the socket closes
                 break;
@@ -69,7 +73,6 @@ public class ChatClient implements Runnable {
             status = 0;
             send("!exit");
             out.close();
-//            reciever.close();
             socket.close();
             System.out.println("Client closed");
         }

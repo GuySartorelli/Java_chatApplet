@@ -4,18 +4,23 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.List;
 
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
-public class UserGUI extends VBox{
+public class UserGUI extends VBox {
     private ChatGUI mainUI;
     private TextField nameField;
     private PasswordField pwdField;
@@ -28,24 +33,38 @@ public class UserGUI extends VBox{
     private int port = 9090;
 
     public UserGUI(ChatGUI main) {
+        setPadding(new Insets(20, 10, 10, 10));  
+        setSpacing(10);
+        setAlignment(Pos.CENTER);
+        main.primaryStage.setMinWidth(280);
+        main.primaryStage.setMinHeight(140);
+        
         mainUI = main;
-        HBox nameBox = new HBox();
-        HBox pwdBox = new HBox();
-        getChildren().addAll(nameBox, pwdBox);
+        GridPane userPane = new GridPane();
+        userPane.setAlignment(Pos.CENTER);
+        userPane.setHgap(5);
+        userPane.setVgap(5);
+        getChildren().add(userPane);
         
         Label nameLabel = new Label("User Name");
         nameField = new TextField();
-        nameBox.getChildren().addAll(nameLabel, nameField);
+        userPane.addRow(0, nameLabel, nameField);
 
         Label pwdLabel = new Label("Password");
         pwdField = new PasswordField();
-        pwdBox.getChildren().addAll(pwdLabel, pwdField);
+        userPane.addRow(1, pwdLabel, pwdField);
         
+        HBox buttonBox = new HBox();
+        buttonBox.setSpacing(10);
+        buttonBox.setAlignment(Pos.CENTER);
         Button loginBtn = new Button("Login");
         loginBtn.setOnAction(this::onLogin);
+        loginBtn.setFocusTraversable(false);
         Button signupBtn = new Button("Signup");
         signupBtn.setOnAction(this::onSignup);
-        getChildren().addAll(loginBtn, signupBtn, feedback);
+        signupBtn.setFocusTraversable(false);
+        buttonBox.getChildren().addAll(loginBtn, signupBtn);
+        getChildren().addAll(buttonBox, feedback);
     }
     
     public void onLogin(ActionEvent event) {
@@ -83,9 +102,15 @@ public class UserGUI extends VBox{
     
     public void onSignup(ActionEvent event) {
         clearFeedback();
+        List<String> reservedNames = Arrays.asList(new String[]{"server", "Server", "admin", "Admin", "administrator", "Administrator"});
         
         if (nameField.getText().length() == 0 || pwdField.getText().length() == 0) {
             badFeedback("Name and password must not be empty");
+            return;
+        }
+        
+        if (reservedNames.contains(nameField.getText())) {
+            badFeedback("That name is reserved");
             return;
         }
         

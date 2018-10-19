@@ -53,16 +53,27 @@ public class ServerConnectionThread extends Thread {
                     if (tokens.length == 2 && tokens[0].equals("chcknm")) {
                         String name = tokens[1];
                         response = ChatDB.checkUniqueName(name);
+                        if (response != 1) {
+                            done = true;
+                        }
                     } else if (tokens.length == 3 && tokens[0].equals("signup")) {
                         String name = tokens[1];
                         String pwd = tokens[2];
                         response = ChatDB.signup(name, pwd);
-                        if (response == 1) this.name = name;
+                        if (response == 1) {
+                            this.name = name;
+                        } else {
+                            done = true;
+                        }
                     } else if (tokens.length == 3 && tokens[0].equals("login")) {
                         String name = tokens[1];
                         String pwd = tokens[2];
                         response = ChatDB.login(name, pwd);
-                        if (response == 1) this.name = name;
+                        if (response == 1) {
+                            this.name = name;
+                        } else {
+                            done = true;
+                        }
                     } else {
                         response = -1;
                     }
@@ -83,8 +94,6 @@ public class ServerConnectionThread extends Thread {
                 }
             }
             close();
-        } catch (EOFException e) {
-            //leave it; this occurs when the user authentication fails
         } catch (IOException e) {
             e.printStackTrace();
         }

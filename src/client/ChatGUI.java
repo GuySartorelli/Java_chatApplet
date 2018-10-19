@@ -31,7 +31,7 @@ public class ChatGUI extends Application {
     
   private int width = 600;
   private int height = 150;
-  private Stage primaryStage;
+  Stage primaryStage;
   private VBox layout;
   private ChatClient client;
 
@@ -42,8 +42,6 @@ public class ChatGUI extends Application {
   public void start(Stage primaryStage) throws Exception {
       this.primaryStage = primaryStage;
       primaryStage.setTitle("Chat Client");
-      primaryStage.setMinHeight(height);
-      primaryStage.setMinWidth(width);
       
       //Input pane with user interaction
       //--------------------------------
@@ -72,6 +70,8 @@ public class ChatGUI extends Application {
       msgField.setOnKeyReleased(msgFieldHandler(msgField, sendBtn));
       sendBtn.setOnAction(sendBtnHandler(msgField));
       quitBtn.setOnAction(quitBtnHandler());
+      sendBtn.setFocusTraversable(false);
+      quitBtn.setFocusTraversable(false);
       
       //construct layout and show window
       //----------------------------------------
@@ -85,6 +85,8 @@ public class ChatGUI extends Application {
   
   public void startChat(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
       primaryStage.setScene(new Scene(layout));
+      primaryStage.setMinHeight(height);
+      primaryStage.setMinWidth(width);
       
       try {
         client = new ChatClient(socket, in, out);
