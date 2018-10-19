@@ -5,6 +5,10 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static messages.Protocol.SUCCESS;
+import static messages.Protocol.FAIL;
+import static messages.Protocol.ERROR;
+
 public class ChatDB {
     
     private static Connection connect() throws SQLException {
@@ -31,20 +35,20 @@ public class ChatDB {
     
     private static int update(String update) throws SQLException {
         Connection db = connect();
-        if (db == null) return -1;
+        if (db == null) return ERROR;
         int result = db.createStatement().executeUpdate(update);
         db.close();
         return result;
     }
     
     public static int checkUniqueName(String name) {
-        int res = 1;
+        int res = SUCCESS;
         try {
             ResultSet rs = query(String.format("SELECT * FROM users WHERE name = '%s'", name));
-            if(rs == null) return -1;
-            if(rs.next()) res = 0;
+            if(rs == null) return ERROR;
+            if(rs.next()) res = FAIL;
         } catch (SQLException e) {
-            return -1;
+            return ERROR;
         }
         return res;
     }
@@ -54,19 +58,19 @@ public class ChatDB {
             int result = update(String.format("INSERT INTO users VALUES ('%s', '%s')", name, password));
             return result;
         } catch (SQLException e) {
-            return -1;
+            return ERROR;
         }
     }
     
     public static int login(String name, String password)
     {
-        int res = 1;
+        int res = SUCCESS;
         try {
             ResultSet rs = query(String.format("SELECT * FROM users WHERE name = '%s' AND password = '%s'", name, password));
-            if(rs == null) return -1;
-            if(!rs.next()) res = 0;
+            if(rs == null) return ERROR;
+            if(!rs.next()) res = FAIL;
         } catch (SQLException e) {
-            return -1;
+            return ERROR;
         }
         return res;
     }

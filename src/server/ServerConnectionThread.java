@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.StringTokenizer;
 
 import messages.Message;
+import static messages.Protocol.*;
 
 public class ServerConnectionThread extends Thread {
 
@@ -52,14 +52,14 @@ public class ServerConnectionThread extends Thread {
                     if (tokens.length == 2 && tokens[0].equals("chcknm")) {
                         String name = tokens[1];
                         response = ChatDB.checkUniqueName(name);
-                        if (response != 1) {
+                        if (response != SUCCESS) {
                             done = true;
                         }
                     } else if (tokens.length == 3 && tokens[0].equals("signup")) {
                         String name = tokens[1];
                         String pwd = tokens[2];
                         response = ChatDB.signup(name, pwd);
-                        if (response == 1) {
+                        if (response == SUCCESS) {
                             this.name = name;
                             System.out.println("Client authorised: " + socket + "as " + name);
                             server.process(id, new Message("server", name + " has entered"));
@@ -70,7 +70,7 @@ public class ServerConnectionThread extends Thread {
                         String name = tokens[1];
                         String pwd = tokens[2];
                         response = ChatDB.login(name, pwd);
-                        if (response == 1) {
+                        if (response == SUCCESS) {
                             this.name = name;
                             System.out.println("Client authorised: " + socket + "as " + name);
                             server.process(id, new Message("server", name + " has entered"));
@@ -78,7 +78,7 @@ public class ServerConnectionThread extends Thread {
                             done = true;
                         }
                     } else {
-                        response = -1;
+                        response = ERROR;
                     }
                     server.respond(id, response);
                     
@@ -91,8 +91,8 @@ public class ServerConnectionThread extends Thread {
                     } catch (EOFException | SocketException e) {
                         done = true;
                     } catch(IOException | ClassNotFoundException e) {
-                        done = true;
                         e.printStackTrace();
+                        break;
                     }
                 }
             }

@@ -102,15 +102,14 @@ public class UserGUI extends VBox {
     
     public void onSignup(ActionEvent event) {
         clearFeedback();
-        List<String> reservedNames = Arrays.asList(new String[]{"server", "Server", "admin", "Admin",
-                                                                "administrator", "Administrator", "me", "Me"});
+        List<String> reservedNames = Arrays.asList(new String[]{"server", "admin", "administrator", "me"});
         
         if (nameField.getText().length() == 0 || pwdField.getText().length() == 0) {
             badFeedback("Name and password must not be empty");
             return;
         }
         
-        if (reservedNames.contains(nameField.getText())) {
+        if (reservedNames.contains(nameField.getText().toLowerCase())) {
             badFeedback("That name is reserved");
             return;
         }

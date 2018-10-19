@@ -10,11 +10,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.text.Text;
+
 import messages.Message;
+import static messages.Protocol.*;
 
 /**
  * Main application/GUI for number guessing game
@@ -29,7 +29,6 @@ public class ChatClient  implements Runnable {
     private ChatGUI gui;
     
     private final Paint SERVER_MSG_COLOR = Color.DARKSLATEGRAY;
-//    private final Paint OTHER_MSG_COLOR = Color.BLUE;
     private Map<String, Paint> userColors;
     
     public ChatClient(ChatGUI gui, Socket socket, ObjectInputStream in, ObjectOutputStream out) throws IOException {

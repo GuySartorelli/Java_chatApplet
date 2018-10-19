@@ -3,7 +3,6 @@ package client;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintStream;
 import java.net.Socket;
 
 import javafx.application.Application;
@@ -17,7 +16,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -77,7 +75,6 @@ public class ChatGUI extends Application {
       scroll.setFocusTraversable(false);
       scroll.setFitToHeight(true);
       scroll.setFitToWidth(true);
-//      outputArea.setEditable(false);
       outputArea.setFocusTraversable(false);
       outputArea.setPadding(new Insets(5));
       outputArea.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
@@ -85,8 +82,6 @@ public class ChatGUI extends Application {
       outputArea.getChildren().addListener((ListChangeListener<Node>)(change)->{
           scroll.setVvalue(1);
       });
-      //set system out printstream to print to output area
-//      System.setOut(new PrintStream(new TextStream(outputArea)));
       
       //set textfield and button event handlers
       //---------------------------------------
