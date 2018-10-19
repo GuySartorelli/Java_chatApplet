@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.StringTokenizer;
 
 import messages.Message;
@@ -27,8 +28,6 @@ public class ServerConnectionThread extends Thread {
             socket.close();
         }
         System.out.println("Client accepted: " + socket);
-        
-        server.process(id, new Message("server", name + " has entered"));
     }
     
     @Override
@@ -63,6 +62,7 @@ public class ServerConnectionThread extends Thread {
                         if (response == 1) {
                             this.name = name;
                             System.out.println("Client authorised: " + socket + "as " + name);
+                            server.process(id, new Message("server", name + " has entered"));
                         } else {
                             done = true;
                         }
@@ -73,6 +73,7 @@ public class ServerConnectionThread extends Thread {
                         if (response == 1) {
                             this.name = name;
                             System.out.println("Client authorised: " + socket + "as " + name);
+                            server.process(id, new Message("server", name + " has entered"));
                         } else {
                             done = true;
                         }
@@ -87,7 +88,7 @@ public class ServerConnectionThread extends Thread {
                         message.setSender(name);
                         server.process(id, message);
                         done = message.getMessage().equals("!exit");
-                    } catch (EOFException e) {
+                    } catch (EOFException | SocketException e) {
                         done = true;
                     } catch(IOException | ClassNotFoundException e) {
                         done = true;

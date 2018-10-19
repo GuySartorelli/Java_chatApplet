@@ -9,6 +9,8 @@ import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
@@ -18,7 +20,7 @@ import messages.Message;
  * Main application/GUI for number guessing game
  * @author rallion
  */
-public class ChatClient implements Runnable {
+public class ChatClient  implements Runnable {
 	
     private int status;
 	private Socket socket;
@@ -35,8 +37,7 @@ public class ChatClient implements Runnable {
         this.socket = socket;
         this.out = out;
         this.in = in;
-//        System.out.println("Client running");
-        print("Client running", SERVER_MSG_COLOR);
+        gui.printToOutput("Client running", SERVER_MSG_COLOR);
         status = 1;
         userColors = new HashMap<String, Paint>();
         userColors.put("server", SERVER_MSG_COLOR);
@@ -49,11 +50,20 @@ public class ChatClient implements Runnable {
         while (status == 1) {
             try {
                 Message message = (Message) in.readObject();
-                process(message);
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        process(message);
+                    }
+                });
             } catch (EOFException e) {
                 //Thrown when the server closes connection because it's stuck on in.readObject() when the connection terminates
-                print("Connection severed by server", SERVER_MSG_COLOR);
-//                System.out.println("Connection severed by server");
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        gui.printToOutput("Connection severed by server", SERVER_MSG_COLOR);
+                    }
+                });
                 status = 0;
                 break;
             } catch (SocketException e) {
@@ -67,19 +77,12 @@ public class ChatClient implements Runnable {
         }
     }
     
-    private void print(String msg, Paint color) {
-        Text text = new Text(msg+"\n");
-        text.setFill(color);
-        gui.outputArea.getChildren().add(text);
-    }
-    
     public void send(String msg) {
         if (status == 1) {
             try {
                 out.writeObject(new Message(null, msg));
                 out.flush();
-//                System.out.println("Me: " + msg);
-                print("ME: " + msg, userColors.get("ME"));
+                gui.printToOutput("ME: " + msg, userColors.get("ME"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -87,7 +90,6 @@ public class ChatClient implements Runnable {
     }
     
     public synchronized void process(Message message) {
-//        if (message != null) System.out.println(message);
         if (message != null) {
             if (!userColors.containsKey(message.getSender())) {
                 double R = Math.random()*0.8;
@@ -95,7 +97,7 @@ public class ChatClient implements Runnable {
                 double B = Math.random()*0.8;
                 userColors.put(message.getSender(), new Color(R,G,B, 1));
             }
-            print(message.toString(), userColors.get(message.getSender()));
+            gui.printToOutput(message.toString(), userColors.get(message.getSender()));
         }
     }
     
@@ -105,8 +107,7 @@ public class ChatClient implements Runnable {
             send("!exit");
             out.close();
             socket.close();
-//            System.out.println("Client closed");
-            print("Client closed", SERVER_MSG_COLOR);
+            gui.printToOutput("Client closed", SERVER_MSG_COLOR);
         }
     }
 }

@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,14 +102,16 @@ public class ChatServer implements Runnable {
     }
     
     public synchronized void sendAll(int sender, Message message) throws IOException {
+        List<Integer> toRemove = new ArrayList<Integer>();
         for (Map.Entry<Integer, ObjectOutputStream> entry : clients.entrySet()) {
             if (entry.getKey() == sender) continue;
             try {
                 entry.getValue().writeObject(message);
             } catch (SocketException e) {
-                clients.remove(entry.getKey());
+                toRemove.add(entry.getKey());
             }
         }
+        for (int client : toRemove) clients.remove(client);
     }
     
     public void close() {

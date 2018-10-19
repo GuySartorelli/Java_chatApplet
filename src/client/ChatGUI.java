@@ -28,6 +28,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 
@@ -159,6 +161,12 @@ public class ChatGUI extends Application {
               Platform.exit();
           }
       };
+  }
+  
+  public synchronized void printToOutput(String msg, Paint color) {
+      Text text = new Text(msg+"\n");
+      text.setFill(color);
+      outputArea.getChildren().add(text);
   }
   
   public static void main(String[] args) throws IOException {
