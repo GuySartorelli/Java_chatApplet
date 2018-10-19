@@ -102,7 +102,8 @@ public class UserGUI extends VBox {
     
     public void onSignup(ActionEvent event) {
         clearFeedback();
-        List<String> reservedNames = Arrays.asList(new String[]{"server", "Server", "admin", "Admin", "administrator", "Administrator"});
+        List<String> reservedNames = Arrays.asList(new String[]{"server", "Server", "admin", "Admin",
+                                                                "administrator", "Administrator", "me", "Me"});
         
         if (nameField.getText().length() == 0 || pwdField.getText().length() == 0) {
             badFeedback("Name and password must not be empty");

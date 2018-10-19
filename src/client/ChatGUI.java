@@ -14,13 +14,21 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 
 /**
@@ -34,6 +42,8 @@ public class ChatGUI extends Application {
   Stage primaryStage;
   private VBox layout;
   private ChatClient client;
+  
+  TextFlow outputArea;
 
   /* (non-Javadoc)
    * @see javafx.application.Application#start(javafx.stage.Stage)
@@ -58,12 +68,18 @@ public class ChatGUI extends Application {
       Button quitBtn = new Button("Quit");
       
       //Output area with chat messages
-      TextArea outputArea = new TextArea();
-      outputArea.setEditable(false);
+      outputArea = new TextFlow();
+      ScrollPane scroll = new ScrollPane(outputArea);
+      scroll.setFocusTraversable(false);
+      scroll.setFitToHeight(true);
+      scroll.setFitToWidth(true);
+//      outputArea.setEditable(false);
       outputArea.setFocusTraversable(false);
       outputArea.setPadding(new Insets(5));
+      outputArea.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+      outputArea.setBorder(new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID, null, BorderStroke.THIN)));
       //set system out printstream to print to output area
-      System.setOut(new PrintStream(new TextStream(outputArea)));
+//      System.setOut(new PrintStream(new TextStream(outputArea)));
       
       //set textfield and button event handlers
       //---------------------------------------
@@ -77,8 +93,8 @@ public class ChatGUI extends Application {
       //----------------------------------------
       msgBox.getChildren().addAll(msgField, sendBtn, quitBtn);
       HBox.setHgrow(msgField, Priority.ALWAYS);
-      layout.getChildren().addAll(outputArea, msgBox);
-      VBox.setVgrow(outputArea, Priority.ALWAYS);
+      layout.getChildren().addAll(scroll, msgBox);
+      VBox.setVgrow(scroll, Priority.ALWAYS);
       primaryStage.setScene(new Scene(new UserGUI(this)));
       primaryStage.show();
   }
@@ -89,7 +105,7 @@ public class ChatGUI extends Application {
       primaryStage.setMinWidth(width);
       
       try {
-        client = new ChatClient(socket, in, out);
+        client = new ChatClient(this, socket, in, out);
     } catch (IOException e) {
         client = null;
         System.out.println("Unable to connect to server");
