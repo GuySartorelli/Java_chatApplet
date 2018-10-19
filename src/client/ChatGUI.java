@@ -8,10 +8,12 @@ import java.net.Socket;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -80,6 +82,9 @@ public class ChatGUI extends Application {
       outputArea.setPadding(new Insets(5));
       outputArea.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
       outputArea.setBorder(new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID, null, BorderStroke.THIN)));
+      outputArea.getChildren().addListener((ListChangeListener<Node>)(change)->{
+          scroll.setVvalue(1);
+      });
       //set system out printstream to print to output area
 //      System.setOut(new PrintStream(new TextStream(outputArea)));
       
