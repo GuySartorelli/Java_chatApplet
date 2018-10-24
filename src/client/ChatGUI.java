@@ -1,8 +1,8 @@
 package client;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 import javafx.application.Application;
@@ -101,7 +101,7 @@ public class ChatGUI extends Application {
       primaryStage.show();
   }
   
-  public void startChat(Socket socket, ObjectInputStream in, ObjectOutputStream out) {
+  public void startChat(Socket socket, BufferedReader in, PrintWriter out) {
       primaryStage.setScene(new Scene(layout));
       primaryStage.setMinHeight(height);
       primaryStage.setMinWidth(width);
@@ -139,7 +139,7 @@ public class ChatGUI extends Application {
       return new EventHandler<ActionEvent>() {
           @Override
           public void handle(ActionEvent event) {
-              client.send(msgField.getText());
+              client.processToServer(msgField.getText());
               msgField.clear();
           }
       };
