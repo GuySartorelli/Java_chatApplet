@@ -1,8 +1,9 @@
 package client;
 
-import java.io.ObjectInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
@@ -20,14 +21,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
+import static messages.Protocol.*;
+
 public class UserGUI extends VBox {
     private ChatGUI mainUI;
     private TextField nameField;
     private PasswordField pwdField;
     private Text feedback = new Text();
     private Socket socket;
-    private ObjectOutputStream out;
-    private ObjectInputStream in;
+    private PrintWriter out;
+    private BufferedReader in;
 
     private String serverAddress = "10.140.136.80";
     private int port = 9090;
@@ -75,20 +78,25 @@ public class UserGUI extends VBox {
             return;
         }
         
+        if (nameField.getText().contains(DELIM) || pwdField.getText().contains(DELIM)) {
+            badFeedback("Name or password must not contain the string \"" + DELIM +"\"");
+            return;
+        }
+        
         boolean isConnected = connectToServer();
         if (!isConnected) {
             badFeedback("Unable to connect to server");
             return;
         }
         
-        int loginIsValid = login();
-        if (loginIsValid < 1) {
+        String loginIsValid = login();
+        if (!loginIsValid.equals(SUCCESS)) {
             String msg = "unknown error";
             switch (loginIsValid) {
-            case 0:
+            case FAIL:
                 msg = "Name or password was incorrect";
                 break;
-            case -1:
+            case ERROR:
                 msg = "Unable to ask server if credentials are valid";
                 break;
             }
@@ -109,6 +117,11 @@ public class UserGUI extends VBox {
             return;
         }
         
+        if (nameField.getText().contains(DELIM) || pwdField.getText().contains(DELIM)) {
+            badFeedback("Name or password must not contain the string \"" + DELIM +"\"");
+            return;
+        }
+        
         if (reservedNames.contains(nameField.getText().toLowerCase())) {
             badFeedback("That name is reserved");
             return;
@@ -120,14 +133,14 @@ public class UserGUI extends VBox {
             return;
         }
         
-        int nameIsUnique = checkUniqueName();
-        if (nameIsUnique < 1) {
+        String nameIsUnique = checkUniqueName();
+        if (!nameIsUnique.equals(SUCCESS)) {
             String msg = "unkown error";
             switch (nameIsUnique) {
-            case 0:
+            case FAIL:
                 msg = "That name is already in use";
                 break;
-            case -1:
+            case ERROR:
                 msg = "Unable to ask server if name is in use";
                 break;
             }
@@ -136,14 +149,14 @@ public class UserGUI extends VBox {
             return;
         }
         
-        int isSignedUp = signup();
-        if (isSignedUp < 1) {
+        String isSignedUp = signup();
+        if (!isSignedUp.equals(SUCCESS)) {
             String msg = "unknown error";
             switch (isSignedUp) {
-            case 0:
+            case FAIL:
                 msg = "Could not sign you up. Please try again";
                 break;
-            case -1:
+            case ERROR:
                 msg = "Unable to ask server to sign you up";
                 break;
             }
@@ -164,53 +177,54 @@ public class UserGUI extends VBox {
         feedback.setText("");
     }
     
-    public int checkUniqueName() {
-        if (socket == null) return -1;
+    public String checkUniqueName() {
+        if (socket == null) return ERROR;
         
         try {
-            out.writeUTF("chcknm::"+nameField.getText());
+            out.println(CHECK_NAME+DELIM + nameField.getText());
             out.flush();
-            return in.readInt();
+            return in.readLine();
         } catch (IOException e) {
-            return -1;
+            return ERROR;
         }
     }
     
-    public int signup() {
-        if (socket == null) return -1;
+    public String signup() {
+        if (socket == null) return ERROR;
         
         try {
             //note: If I was worried about being secure I'd hash the pwd before sending it to protect against sniffing
-            out.writeUTF("signup::"+nameField.getText()+"::"+pwdField.getText());
+            out.println(SIGNUP+DELIM + nameField.getText()+DELIM + pwdField.getText());
             out.flush();
-            return in.readInt();
+            return in.readLine();
         } catch (IOException e) {
-            return -1;
+            return ERROR;
         }
     }
     
-    public int login() {
-        if (socket == null) return -1;
+    public String login() {
+        if (socket == null) return ERROR;
         
         try {
             //note: If I was worried about being secure I'd hash the pwd before sending it to protect against sniffing
-            out.writeUTF("login::"+nameField.getText()+"::"+pwdField.getText());
+            out.println(LOGIN+DELIM + nameField.getText()+DELIM + pwdField.getText());
             out.flush();
-            return in.readInt();
+            return in.readLine();
         } catch (IOException e) {
-            return -1;
+            return ERROR;
         }
     }
     
     public boolean connectToServer() {
         try {
             socket = new Socket(serverAddress, port);
-            out = new ObjectOutputStream(socket.getOutputStream());
-            in = new ObjectInputStream(socket.getInputStream());
+            out = new PrintWriter(socket.getOutputStream());
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             socket = null;
             out = null;
             in = null;
+            System.err.println("Could not connect");
             return false;
         }
         return true;
@@ -219,6 +233,8 @@ public class UserGUI extends VBox {
     public void closeConnection() {
         if (socket == null) return;
         try {
+            out.println(ACKNOWLEDGE_FAIL);
+            out.flush();
             in.close();
             out.close();
             socket.close();

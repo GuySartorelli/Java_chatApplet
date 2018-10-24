@@ -33,16 +33,16 @@ public class ChatDB {
         return rs;
     }
     
-    private static int update(String update) throws SQLException {
+    private static String update(String update) throws SQLException {
         Connection db = connect();
         if (db == null) return ERROR;
         int result = db.createStatement().executeUpdate(update);
         db.close();
-        return result;
+        return Integer.toString(result);
     }
     
-    public static int checkUniqueName(String name) {
-        int res = SUCCESS;
+    public static String checkUniqueName(String name) {
+        String res = SUCCESS;
         try {
             ResultSet rs = query(String.format("SELECT * FROM users WHERE name = '%s'", name));
             if(rs == null) return ERROR;
@@ -53,18 +53,18 @@ public class ChatDB {
         return res;
     }
     
-    public static int signup(String name, String password) {
+    public static String signup(String name, String password) {
         try {
-            int result = update(String.format("INSERT INTO users VALUES ('%s', '%s')", name, password));
+            String result = update(String.format("INSERT INTO users VALUES ('%s', '%s')", name, password));
             return result;
         } catch (SQLException e) {
             return ERROR;
         }
     }
     
-    public static int login(String name, String password)
+    public static String login(String name, String password)
     {
-        int res = SUCCESS;
+        String res = SUCCESS;
         try {
             ResultSet rs = query(String.format("SELECT * FROM users WHERE name = '%s' AND password = '%s'", name, password));
             if(rs == null) return ERROR;
