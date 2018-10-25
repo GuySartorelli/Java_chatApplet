@@ -47,7 +47,7 @@ public class ChatGUI extends Application {
   private VBox layout;
   private ChatClient client;
   
-  private TextFlow outputArea;
+  private ChatFlow outputArea;
   private VBox userPanel;
   private Map<String, Button> userButtons = new HashMap<String, Button>();
 
@@ -75,18 +75,7 @@ public class ChatGUI extends Application {
       
       //Output area with chat messages
       //------------------------------
-      outputArea = new TextFlow();
-      ScrollPane outScroll = new ScrollPane(outputArea);
-      outScroll.setFocusTraversable(false);
-      outScroll.setFitToHeight(true);
-      outScroll.setFitToWidth(true);
-      outputArea.setFocusTraversable(false);
-      outputArea.setPadding(new Insets(5));
-      outputArea.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-      outputArea.setBorder(new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.SOLID, null, BorderStroke.THIN)));
-      outputArea.getChildren().addListener((ListChangeListener<Node>)(change)->{
-          outScroll.setVvalue(1);
-      });
+      outputArea = new ChatFlow();
       
       //Current users panel
       //-------------------
@@ -99,8 +88,8 @@ public class ChatGUI extends Application {
       userScroll.setFitToHeight(true);
       userScroll.setFitToWidth(true);
       
-      HBox outputAndUsers = new HBox(outScroll, userScroll);
-      HBox.setHgrow(outScroll, Priority.ALWAYS);
+      HBox outputAndUsers = new HBox(outputArea, userScroll);
+      HBox.setHgrow(outputArea, Priority.ALWAYS);
       
       //set textfield and button event handlers
       //---------------------------------------
@@ -126,7 +115,7 @@ public class ChatGUI extends Application {
       primaryStage.setMinWidth(width);
       
       try {
-        client = new ChatClient(this, socket, in, out);
+        client = new ChatClient(this, socket, in, out, outputArea);
     } catch (IOException e) {
         client = null;
         System.out.println("Unable to connect to server");
@@ -203,12 +192,6 @@ public class ChatGUI extends Application {
   public void removeUser(String user) {
       userPanel.getChildren().remove(userButtons.get(user));
       userButtons.remove(user);
-  }
-  
-  public void printToOutput(String msg, Paint color) {
-      Text text = new Text(msg+"\n");
-      text.setFill(color);
-      outputArea.getChildren().add(text);
   }
   
   public static void main(String[] args) throws IOException {

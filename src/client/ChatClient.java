@@ -27,15 +27,17 @@ public class ChatClient  implements Runnable {
     private BufferedReader in;
     private String name;
     private ChatGUI gui;
+    private ChatFlow msgDisplay;
     
     private final Paint SERVER_MSG_COLOR = Color.DARKSLATEGRAY;
     private Map<String, Paint> userColors;
     
-    public ChatClient(ChatGUI gui, Socket socket, BufferedReader in, PrintWriter out) throws IOException {
+    public ChatClient(ChatGUI gui, Socket socket, BufferedReader in, PrintWriter out, ChatFlow msgDisplay) throws IOException {
         this.gui = gui;
         this.socket = socket;
         this.out = out;
         this.in = in;
+        this.msgDisplay = msgDisplay;
         status = 1;
         userColors = new HashMap<String, Paint>();
         new Thread(this).start();
@@ -57,7 +59,7 @@ public class ChatClient  implements Runnable {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        gui.printToOutput("Connection severed by server", SERVER_MSG_COLOR);
+                        msgDisplay.print("Connection severed by server", SERVER_MSG_COLOR);
                     }
                 });
                 status = 0;
@@ -74,7 +76,7 @@ public class ChatClient  implements Runnable {
     public void processToServer(String msg) {
         if (status == 1) {
             if (msg.contains(DELIM)) {
-                gui.printToOutput("message cannot contain the string \""+DELIM+"\"", SERVER_MSG_COLOR);
+                msgDisplay.print("message cannot contain the string \""+DELIM+"\"", SERVER_MSG_COLOR);
                 return;
             }
             
@@ -82,11 +84,11 @@ public class ChatClient  implements Runnable {
             if (msg.startsWith("/me ")) {
                 toServer = ACTION+DELIM;
                 msg = msg.replace("/me ", "");
-                gui.printToOutput(name+" "+msg, SERVER_MSG_COLOR);
+                msgDisplay.print(name+" "+msg, SERVER_MSG_COLOR);
             }
             else {
                 toServer = MESSAGE+DELIM;
-                gui.printToOutput("ME: " + msg, userColors.get(name));
+                msgDisplay.print("ME: " + msg, userColors.get(name));
             }
             toServer += PUBLIC+DELIM + name+DELIM + msg;
             
@@ -102,28 +104,28 @@ public class ChatClient  implements Runnable {
             case MESSAGE:
                 String from = tokens[2];
                 if (tokens[1].equals(PRIVATE)) break; //not yet handled
-                else gui.printToOutput(from+": " + tokens[3], userColors.get(from));
+                else msgDisplay.print(from+": " + tokens[3], userColors.get(from));
                 break;
             case ACTION:
                 from = tokens[2];
                 if (tokens[1].equals(PRIVATE)) break; //not yet handled
-                else gui.printToOutput(from+" " + tokens[3], SERVER_MSG_COLOR);
+                else msgDisplay.print(from+" " + tokens[3], SERVER_MSG_COLOR);
                 break;
             case USER_ENTER:
                 String user = tokens[1];
                 addUser(user);
-                gui.printToOutput(user+" has entered", SERVER_MSG_COLOR);
+                msgDisplay.print(user+" has entered", SERVER_MSG_COLOR);
                 break;
             case USER_EXIT:
                 user = tokens[1];
                 userColors.remove(user);
                 gui.removeUser(user);
-                gui.printToOutput(user+" has exited", SERVER_MSG_COLOR);
+                msgDisplay.print(user+" has exited", SERVER_MSG_COLOR);
                 break;
             case WELCOME:
                 name = tokens[1];
                 userColors.put(name, Color.BLACK);
-                gui.printToOutput(tokens[2], SERVER_MSG_COLOR);
+                msgDisplay.print(tokens[2], SERVER_MSG_COLOR);
                 for (int i = 3; i < tokens.length; i++) addUser(tokens[i]);
                 break;
             default:
@@ -153,7 +155,7 @@ public class ChatClient  implements Runnable {
             out.flush();
             out.close();
             socket.close();
-            gui.printToOutput("Client closed", SERVER_MSG_COLOR);
+            msgDisplay.print("Client closed", SERVER_MSG_COLOR);
         }
     }
 }
