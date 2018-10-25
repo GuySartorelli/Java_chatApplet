@@ -39,7 +39,6 @@ public class ChatClient  implements Runnable {
         gui.printToOutput("Client running", SERVER_MSG_COLOR);
         status = 1;
         userColors = new HashMap<String, Paint>();
-        userColors.put("server", SERVER_MSG_COLOR);
         userColors.put("ME", Color.BLACK);
         new Thread(this).start();
     }
@@ -76,11 +75,16 @@ public class ChatClient  implements Runnable {
     
     public void processToServer(String msg) {
         if (status == 1) {
+            if (msg.contains(DELIM)) {
+                gui.printToOutput("message cannot contain the string \""+DELIM+"\"", SERVER_MSG_COLOR);
+                return;
+            }
+            
             String toServer = "";
             if (msg.startsWith("/me ")) {
                 toServer = ACTION+DELIM;
                 msg = msg.replace("/me ", "");
-                gui.printToOutput(name+" "+msg, userColors.get("server"));
+                gui.printToOutput(name+" "+msg, SERVER_MSG_COLOR);
             }
             else {
                 toServer = MESSAGE+DELIM;
@@ -105,21 +109,21 @@ public class ChatClient  implements Runnable {
             case ACTION:
                 from = tokens[2];
                 if (tokens[1].equals(PRIVATE)) break; //not yet handled
-                else gui.printToOutput(from+" " + tokens[3], userColors.get("server"));
+                else gui.printToOutput(from+" " + tokens[3], SERVER_MSG_COLOR);
                 break;
             case USER_ENTER:
                 String user = tokens[1];
                 addUser(user);
-                gui.printToOutput(user+" has entered", userColors.get("server"));
+                gui.printToOutput(user+" has entered", SERVER_MSG_COLOR);
                 break;
             case USER_EXIT:
                 user = tokens[1];
                 userColors.remove(user);
-                gui.printToOutput(user+" has exited", userColors.get("server"));
+                gui.printToOutput(user+" has exited", SERVER_MSG_COLOR);
                 break;
             case WELCOME:
                 name = tokens[1];
-                gui.printToOutput(tokens[2], userColors.get("server"));
+                gui.printToOutput(tokens[2], SERVER_MSG_COLOR);
                 for (int i = 3; i < tokens.length; i++) addUser(tokens[i]);
                 break;
             default:
