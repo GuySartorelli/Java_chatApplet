@@ -79,18 +79,21 @@ public class ChatClient  implements Runnable {
             String toServer = "";
             if (msg.startsWith("/me ")) {
                 toServer = ACTION+DELIM;
-                msg.replace("/me ", "");
+                msg = msg.replace("/me ", "");
+                gui.printToOutput(name+" "+msg, userColors.get("server"));
             }
-            else toServer = MESSAGE+DELIM;
+            else {
+                toServer = MESSAGE+DELIM;
+                gui.printToOutput("ME: " + msg, userColors.get("ME"));
+            }
             toServer += PUBLIC+DELIM + name+DELIM + msg;
             
             out.println(toServer);
             out.flush();
-            gui.printToOutput("ME: " + msg, userColors.get("ME"));
         }
     }
     
-    public synchronized void processFromServer(String message) {
+    public void processFromServer(String message) {
         if (message != null) {
             String[] tokens = message.split(DELIM);
             switch (tokens[0]) {

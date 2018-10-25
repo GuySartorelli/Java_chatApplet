@@ -59,7 +59,7 @@ public class ChatServer implements Runnable {
         }
     }
     
-    public synchronized void process(int client, String message) {
+    public void process(int client, String message) {
         /* Note: If I was worried about being secure I'd use something like the below:
             SecureRandom random = new SecureRandom();
             byte[] salt = new byte[16];
@@ -130,16 +130,16 @@ public class ChatServer implements Runnable {
         sendAll(client, USER_ENTER+DELIM + name);
     }
     
-    public synchronized void sendTo(int client, String response) {
+    public void sendTo(int client, String response) {
         writers.get(client).println(response);
         writers.get(client).flush();
     }
     
-    public synchronized void sendTo(String user, String message) {
+    public void sendTo(String user, String message) {
         sendTo(clients.get(user), message);
     }
     
-    public synchronized void sendAll(String message) {
+    public void sendAll(String message) {
         for (Map.Entry<Integer, PrintWriter> entry : writers.entrySet()) {
             entry.getValue().println(message);
             entry.getValue().flush();
@@ -147,7 +147,7 @@ public class ChatServer implements Runnable {
         }
     }
     
-    public synchronized void sendAll(int sender, String message) {
+    public void sendAll(int sender, String message) {
 //        List<Integer> toRemove = new ArrayList<Integer>();
         for (Map.Entry<Integer, PrintWriter> entry : writers.entrySet()) {
             if (entry.getKey() == sender) continue;
