@@ -112,9 +112,11 @@ public class ChatServer implements Runnable {
             name = tokens[1];
             writers.remove(client);
             clients.remove(name);
+            sendAll(client, message);
+            break;
         case MESSAGE:
         case ACTION:
-            if (tokens[1].equals(PRIVATE)) sendTo(tokens[3], message);
+            if (!tokens[2].equals(SERVER)) sendTo(tokens[2], message);
             else sendAll(client, message);
             break;
         default:

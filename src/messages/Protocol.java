@@ -14,16 +14,15 @@ public final class Protocol {
     
     //server/client messaging protocol
     public static final String MESSAGE = "MSG";
-    public static final String PRIVATE = "PRVT";
-    public static final String PUBLIC = "PBLC";
+    public static final String SERVER = "Server";
     public static final String USER_ENTER = "ENTER";
     public static final String USER_EXIT = "EXIT";
     public static final String ACTION = "ACTN";
     public static final String WELCOME = "WLCM";
     
-    //msg::prvt/pblc::user::[user::]msg //maybe rgb
-    //actn::prvt/pblc::user::[user::]actn
-    //enter::user
-    //exit::user
-    //wlcm::name::msg::user::user::useretc
+    //msg:::from:::to:::msg //maybe rgb
+    //actn:::from:::to:::actn
+    //enter:::user
+    //exit:::user
+    //wlcm:::name:::msg:::user:::user:::useretc
 }

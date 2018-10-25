@@ -9,15 +9,14 @@ import java.util.Map;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -31,9 +30,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+
+import static messages.Protocol.SERVER;
 
 /**
  * Main application/GUI for number guessing game
@@ -47,9 +46,11 @@ public class ChatGUI extends Application {
   private VBox layout;
   private ChatClient client;
   
-  private ChatFlow outputArea;
+  private ChatFlowTab serverTab;
+  private TabPane outputTabPane;
   private VBox userPanel;
   private Map<String, Button> userButtons = new HashMap<String, Button>();
+  private Map<String, ChatFlowTab> userTabs = new HashMap<String, ChatFlowTab>();
 
   /* (non-Javadoc)
    * @see javafx.application.Application#start(javafx.stage.Stage)
@@ -75,7 +76,10 @@ public class ChatGUI extends Application {
       
       //Output area with chat messages
       //------------------------------
-      outputArea = new ChatFlow();
+      outputTabPane = new TabPane();
+      serverTab = new ChatFlowTab(SERVER, false);
+      outputTabPane.getTabs().add(serverTab);
+      userTabs.put(SERVER, serverTab);
       
       //Current users panel
       //-------------------
@@ -88,8 +92,8 @@ public class ChatGUI extends Application {
       userScroll.setFitToHeight(true);
       userScroll.setFitToWidth(true);
       
-      HBox outputAndUsers = new HBox(outputArea, userScroll);
-      HBox.setHgrow(outputArea, Priority.ALWAYS);
+      HBox outputAndUsers = new HBox(outputTabPane, userScroll);
+      HBox.setHgrow(outputTabPane, Priority.ALWAYS);
       
       //set textfield and button event handlers
       //---------------------------------------
@@ -115,7 +119,7 @@ public class ChatGUI extends Application {
       primaryStage.setMinWidth(width);
       
       try {
-        client = new ChatClient(this, socket, in, out, outputArea);
+        client = new ChatClient(this, socket, in, out);
     } catch (IOException e) {
         client = null;
         System.out.println("Unable to connect to server");
@@ -147,7 +151,8 @@ public class ChatGUI extends Application {
       return new EventHandler<ActionEvent>() {
           @Override
           public void handle(ActionEvent event) {
-              client.processToServer(msgField.getText());
+              String tab = outputTabPane.getSelectionModel().getSelectedItem().getText();
+              client.processToServer(tab, msgField.getText());
               msgField.clear();
           }
       };
@@ -171,13 +176,22 @@ public class ChatGUI extends Application {
       };
   }
   
+  public void print(String tab, String message, Paint color) {
+      if (!userTabs.containsKey(tab)) addTab(tab);
+      userTabs.get(tab).print(message, color);
+  }
+  
   public void addUser(String user, Paint color) {
       Button userButton = new Button(user);
       userButton.setTextFill(color);
       userButton.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
       
       userButton.setOnMouseClicked(event -> {
-          System.out.println(user + " clicked with " + event.getButton());
+          if (event.getButton().toString().equals("PRIMARY")) {
+              addTab(user);
+          } else {
+              System.out.println(user + " clicked with " + event.getButton());
+          }
       });
       userButton.setOnMouseEntered(event -> {
           userButton.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
@@ -192,6 +206,13 @@ public class ChatGUI extends Application {
   public void removeUser(String user) {
       userPanel.getChildren().remove(userButtons.get(user));
       userButtons.remove(user);
+  }
+  
+  public void addTab(String user) {
+      ChatFlowTab userTab = new ChatFlowTab(user, true);
+      userTabs.put(user, userTab);
+      outputTabPane.getTabs().add(userTab);
+      outputTabPane.getSelectionModel().select(userTab);
   }
   
   public static void main(String[] args) throws IOException {
