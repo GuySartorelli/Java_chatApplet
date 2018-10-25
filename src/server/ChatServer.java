@@ -109,7 +109,9 @@ public class ChatServer implements Runnable {
             break;
         
         case USER_EXIT:
+            name = tokens[1];
             writers.remove(client);
+            clients.remove(name);
         case MESSAGE:
         case ACTION:
             if (tokens[1].equals(PRIVATE)) sendTo(tokens[3], message);

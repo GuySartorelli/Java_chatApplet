@@ -36,10 +36,8 @@ public class ChatClient  implements Runnable {
         this.socket = socket;
         this.out = out;
         this.in = in;
-        gui.printToOutput("Client running", SERVER_MSG_COLOR);
         status = 1;
         userColors = new HashMap<String, Paint>();
-        userColors.put("ME", Color.BLACK);
         new Thread(this).start();
     }
     
@@ -88,7 +86,7 @@ public class ChatClient  implements Runnable {
             }
             else {
                 toServer = MESSAGE+DELIM;
-                gui.printToOutput("ME: " + msg, userColors.get("ME"));
+                gui.printToOutput("ME: " + msg, userColors.get(name));
             }
             toServer += PUBLIC+DELIM + name+DELIM + msg;
             
@@ -119,10 +117,12 @@ public class ChatClient  implements Runnable {
             case USER_EXIT:
                 user = tokens[1];
                 userColors.remove(user);
+                gui.removeUser(user);
                 gui.printToOutput(user+" has exited", SERVER_MSG_COLOR);
                 break;
             case WELCOME:
                 name = tokens[1];
+                userColors.put(name, Color.BLACK);
                 gui.printToOutput(tokens[2], SERVER_MSG_COLOR);
                 for (int i = 3; i < tokens.length; i++) addUser(tokens[i]);
                 break;
@@ -134,10 +134,16 @@ public class ChatClient  implements Runnable {
     }
     
     public void addUser(String user) {
-        double R = Math.random()*0.8;
-        double G = Math.random()*0.8;
-        double B = Math.random()*0.8;
-        userColors.put(user, new Color(R,G,B, 1));
+        Paint color;
+        if (!userColors.containsKey(user)) {
+            double R = Math.random()*0.8;
+            double G = Math.random()*0.8;
+            double B = Math.random()*0.8;
+            color = new Color(R,G,B, 1);
+            userColors.put(user, color);
+        } else color = userColors.get(user);
+        
+        gui.addUser(user, color);
     }
     
     public void close() throws IOException {
