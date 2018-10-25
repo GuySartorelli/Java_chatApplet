@@ -32,7 +32,7 @@ public class UserGUI extends VBox {
     private PrintWriter out;
     private BufferedReader in;
 
-    private String serverAddress = "10.140.136.80";
+    private String serverAddress = "127.0.0.1";
     private int port = 9090;
 
     public UserGUI(ChatGUI main) {
